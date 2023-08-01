@@ -2,12 +2,13 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import re
+# Initialize an empty list to store all the product links
 
 allProductLinks = []
 site = "https://www.netmeds.com"
 
 
-# getting raw data
+# Function to get raw data from a file
 def rawfilename():
     global csvFile
     filename = str(input("Enter the raw data file name: "))
@@ -15,8 +16,8 @@ def rawfilename():
     with open(f"{filename}", "r") as f:
         return f.read()
 
-# triggering
 
+# Function to collect all product links from raw data
 
 def triggerer():
     try:
@@ -29,9 +30,11 @@ def triggerer():
         print(e)
         triggerer()
 
+# Call the triggerer function to start collecting product links
 
 triggerer()
 
+# Function to find and process data for each product URL
 
 def productFinder(jURL):
     ''' This function will get the URL of
@@ -42,6 +45,8 @@ def productFinder(jURL):
         r1 = requests.get(jURL)
         htmlContent1 = r1.text
         soup = BeautifulSoup(htmlContent1, 'html.parser')
+              # Find product details
+
         hsnTextData = soup.find(name="div", string='Hsn Code')
         HSN = hsnTextData.find_next_sibling()
         productPannel = soup.find(class_="product-top")
@@ -53,6 +58,7 @@ def productFinder(jURL):
         essentials = productPannel.find(name="div", class_="essentials")
         priceff = essentials.find(name="span", class_="final-price")
         MRP = essentials.find(name="span", class_="price")
+        # Determine the price based on MRP or final price
 
         if MRP:
             price = MRP.find(name="strike").text
@@ -68,19 +74,28 @@ def productFinder(jURL):
         data2 = soup.findAll(class_="inner-content")
         summery = []
         summeryValues = []
+              # Extract various summary fields and values
+
         for data in data1:
             summery.append(data.text)
         for value in data2:
             summeryValues.append(value)
 
         datamod = dict(zip(summery, summeryValues))
+                # Download the product image
+
         response = requests.get(img['src'])
         open(f"{imagename}.png", "wb").write(response.content)
         field_names = [
-            'name', 'price', 'Description', 'Key Benefits', 'How to use',
-            'Safety Information/Precaution', 'Other Information', 'company', 'HSN',
-            'image', "weight"
-        ]
+    'name', 'price', 'company', 'HSN',
+    'image', 'weight', 'Description','Key Benefits',
+          'How to use','Direction for Use/Dosage','Safety Information/Precaution', 'Other Information'
+]
+        field_names+= list(datamod.keys())
+        field_names = list(set(field_names))
+
+              # Prepare the data for the CSV row
+
         dataf = {
             "name":
             name.text,
@@ -92,6 +107,8 @@ def productFinder(jURL):
             datamod.get("Key Benefits", "nodata"),
             "How to use":
             datamod.get("How to use", "nodata"),
+            "Direction for Use/Dosage":
+            datamod.get("Direction for Use/Dosage", "nodata"),
             "Safety Information/Precaution":
             datamod.get("Safety Information/Precaution", "nodata"),
             "Other Information":
@@ -105,13 +122,16 @@ def productFinder(jURL):
             "weight":
             1
         }
+              # Append the data to the CSV file
+
         with open(f'{csvFile}.csv', 'a') as csv_file:
             dict_object = csv.DictWriter(csv_file, fieldnames=field_names)
+            print(field_names)
             dict_object.writerow(dataf)
     except Exception as e:
         print(e)
 
-
+# Loop through all the product links and process each product
 i = 0
 for url in allProductLinks:
     i = i+1
