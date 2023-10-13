@@ -85,33 +85,40 @@ def productFinder(jURL,image_folder_path,csv_file_path):
       imageName=imagename
       
     field_names = [
-      'name', 'price', 'Description', 'Key Benefits', 'How to use',
-      'Safety Information/Precaution', 'Other Information', 'company', 'HSN',
-      'image', "weight"
-    ]
+'name', 'price', 'company', 'HSN',
+'image', 'weight', 'Description','Key Benefits',
+      'How to use','Direction for Use/Dosage','Safety Information/Precaution', 'Other Information'
+]
+    field_names+= list(datamod.keys())
+    field_names = list(set(field_names))
+
+          # Prepare the data for the CSV row
+
     dataf = {
-      "name":
-      name.text,
-      "price":
-      pp,
-      "Description":
-      datamod.get("Description", "nodata"),
-      "Key Benefits":
-      datamod.get("Key Benefits", "nodata"),
-      "How to use":
-      datamod.get("How to use", "nodata"),
-      "Safety Information/Precaution":
-      datamod.get("Safety Information/Precaution", "nodata"),
-      "Other Information":
-      datamod.get("Other Information", "nodata"),
-      "company":
-      company.text,
-      "HSN":
-      HSN.text,
-      "image":
-      f"{imageName}.jpg",
-      "weight":
-      1
+        "name":
+        name.text,
+        "price":
+        pp,
+        "Description":
+        datamod.get("Description", "nodata"),
+        "Key Benefits":
+        datamod.get("Key Benefits", "nodata"),
+        "How to use":
+        datamod.get("How to use", "nodata"),
+        "Direction for Use/Dosage":
+        datamod.get("Direction for Use/Dosage", "nodata"),
+        "Safety Information/Precaution":
+        datamod.get("Safety Information/Precaution", "nodata"),
+        "Other Information":
+        datamod.get("Other Information", "nodata"),
+        "company":
+        company.text,
+        "HSN":
+        HSN.text,
+        "image":
+        f"{imagename}.jpg",
+        "weight":
+        1
     }
     with open(f'{csv_file_path}', 'a') as csv_file:
       dict_object = csv.DictWriter(csv_file, fieldnames=field_names)
