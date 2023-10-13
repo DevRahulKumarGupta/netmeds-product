@@ -2,6 +2,7 @@ import requests
 from bs4 import BeautifulSoup
 import csv
 import re
+import os
 
 allProductLinks = []
 site = "https://www.netmeds.com"
@@ -10,15 +11,16 @@ site = "https://www.netmeds.com"
 # getting raw data
 def rawfilename():
   global csvFile
+  global foldername
+  foldername=str(input("Enter the Folder: "))
   filename = str(input("Enter the raw data file name: "))
   csvFile = str(input("Enter the title for CSV file: "))
+  
   with open(f"{filename}", "r") as f:
     return f.read()
 
 
 # triggering
-
-
 def triggerer():
   try:
     rawdata = rawfilename()
@@ -34,7 +36,7 @@ def triggerer():
 triggerer()
 
 
-def productFinder(jURL):
+def productFinder(jURL,image_folder_path,csv_file_path):
   ''' This function will get the URL of
           every products and process the data 
           and get the data of fields and 
@@ -78,7 +80,8 @@ def productFinder(jURL):
     imageName="NoImg"
     if img['src'] != 'https://www.netmeds.com/images/product-v1/600x600/default/no_image.png':
       response = requests.get(img['src'])
-      open(f"{imagename}.png", "wb").write(response.content)
+      image_path = os.path.join(image_folder_path, imagename)
+      open(f"{image_path}.png", "wb").write(response.content)
       imageName=imagename
       
     field_names = [
@@ -110,15 +113,36 @@ def productFinder(jURL):
       "weight":
       1
     }
-    with open(f'{csvFile}.csv', 'a') as csv_file:
+    with open(f'{csv_file_path}', 'a') as csv_file:
       dict_object = csv.DictWriter(csv_file, fieldnames=field_names)
       dict_object.writerow(dataf)
   except Exception as e:
     print(e)
 
 
-i = 0
-for url in allProductLinks:
-  i = i + 1
-  print(f'{i}/{len(allProductLinks)}')
-  productFinder(url)
+if foldername :
+    if os.path.exists(foldername):
+        print(f"The folder '{foldername}' already exists.")
+    else:
+        # Create the folder
+        file_name = f'{csvFile}.csv'
+        img=f'{csvFile}Images'
+        os.makedirs(foldername)
+        imgFolderPath = os.path.join(foldername, img)
+        os.makedirs(imgFolderPath, exist_ok=True)
+        csvPath = os.path.join(foldername, file_name)
+        parent_folder_path = os.path.abspath(foldername)
+        image_folder_path = os.path.abspath(imgFolderPath)
+        csv_file_path = os.path.abspath(csvPath)
+
+    path_to_folder = os.path.join(os.getcwd(), foldername)
+    print("Path to folder:", path_to_folder)
+    i = 0
+    for url in allProductLinks:
+      i = i + 1
+      print(f'{i}/{len(allProductLinks)}')
+      productFinder(url,image_folder_path,csv_file_path)
+else:
+    print('The folder doesn't exist... please give a name for folder')
+    triggerer()
+    
